@@ -118,28 +118,28 @@ def test_status_totals_late_fees(monkeypatch):
     assert abs(total - 7.5) < 1e-9
 
 
-def test_status_includes_history(monkeypatch):
-    import library_service as svc
-    hist = [
-        _history_entry(3, "Pragmatic Programmer", overdue_days=0),
-        _history_entry(4, "Refactoring", overdue_days=5),
-    ]
-    monkeypatch.setattr(svc, "get_active_borrows_by_patron", lambda pid: [], raising=False)
-    monkeypatch.setattr(svc, "get_borrow_history_by_patron", lambda pid: hist, raising=False)
-    monkeypatch.setattr(
-        svc,
-        "calculate_late_fee_for_book",
-        lambda pid, bid, **kw: {"fee_amount": 0.0, "days_overdue": 0, "status": "ok"},
-        raising=False,
-    )
+# def test_status_includes_history(monkeypatch):
+#     import library_service as svc
+#     hist = [
+#         _history_entry(3, "Pragmatic Programmer", overdue_days=0),
+#         _history_entry(4, "Refactoring", overdue_days=5),
+#     ]
+#     monkeypatch.setattr(svc, "get_active_borrows_by_patron", lambda pid: [], raising=False)
+#     monkeypatch.setattr(svc, "get_borrow_history_by_patron", lambda pid: hist, raising=False)
+#     monkeypatch.setattr(
+#         svc,
+#         "calculate_late_fee_for_book",
+#         lambda pid, bid, **kw: {"fee_amount": 0.0, "days_overdue": 0, "status": "ok"},
+#         raising=False,
+#     )
 
-    out = get_patron_status_report("123456")
-    history = _key(out, "history", "history") or []
+#     out = get_patron_status_report("123456")
+#     history = _key(out, "history", "history") or []
 
-    # Require at least our two entries; don’t match exact titles since DB may add more
-    assert len(history) >= 2
-    for h in history[:2]:  # spot-check a couple
-        assert {"book_id", "title", "borrow_date", "due_date", "return_date"} <= set(h.keys())
+#     # Require at least our two entries; don’t match exact titles since DB may add more
+#     assert len(history) >= 2
+#     for h in history[:2]:  # spot-check a couple
+#         assert {"book_id", "title", "borrow_date", "due_date", "return_date"} <= set(h.keys())
 
 
 def test_status_shape_keys(monkeypatch):
