@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>👤 Patron Profile</h2>
+
+<form method="POST" class="form-group" style="max-width:420px;margin-top:12px;">
+  <label for="patron_id">Patron ID (6 digits)</label>
+  <input type="text" id="patron_id" name="patron_id" value="{{ patron_id }}" maxlength="6" required>
+  <div style="margin-top:10px;">
+    <button class="btn btn-success" type="submit">Load Profile</button>
+  </div>
+</form>
+
+{% if report %}
+  <div style="margin-top:20px;">
+    <p><strong>ID:</strong> {{ report.patron_id }}</p>
+    <p><strong>Currently Borrowed:</strong> {{ report.current_borrow_count }}</p>
+    <p><strong>Total Late Fees Owed:</strong> ${{ '%.2f'|format(report.total_late_fees) }}</p>
+  </div>
+
+  <h3>Active Loans</h3>
+  {% if report.currently_borrowed %}
+  <table>
+    <thead>
+      <tr><th>Title</th><th>Author</th><th>Borrowed</th><th>Due</th><th>Status</th><th>Fee</th></tr>
+    </thead>
+    <tbody>
+      {% for item in report.currently_borrowed %}
+      <tr>
+        <td>{{ item.title }}</td>
+        <td>{{ item.author }}</td>
+        <td>{{ item.borrow_date[:10] }}</td>
+        <td class="{{ 'status-unavailable' if item.is_overdue else 'status-available' }}">{{ item.due_date[:10] }}</td>
+        <td>
+          {% if item.is_overdue %}
+            <span class="status-unavailable">{{ item.days_overdue }} days overdue</span>
+          {% else %}On time{% endif %}
+        </td>
+        <td>${{ '%.2f'|format(item.current_fee) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="flash-success">No active loans.</p>
+  {% endif %}
+
+  <h3>Borrowing History</h3>
+  {% if report.history %}
+  <table>
+    <thead>
+      <tr><th>Title</th><th>Author</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Fee at End</th></tr>
+    </thead>
+    <tbody>
+      {% for r in report.history %}
+      <tr>
+        <td>{{ r.title }}</td>
+        <td>{{ r.author }}</td>
+        <td>{{ r.borrow_date[:10] }}</td>
+        <td>{{ r.due_date[:10] }}</td>
+        <td>{% if r.returned %}{{ r.return_date[:10] }}{% else %}<span class="status-unavailable">Active</span>{% endif %}</td>
+        <td>${{ '%.2f'|format(r.late_fee_at_end) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="flash-error">No borrowing history yet.</p>
+  {% endif %}
+{% else %}
+  <p>Enter a patron ID above to view their profile.</p>
+{% endif %}
+{% endblock %}
