@@ -15,13 +15,13 @@ Note: The service currently returns None; behavior tests are xfail until impleme
 
 import pytest
 from datetime import datetime, timedelta
-from library_service import calculate_late_fee_for_book
+import services.library_service as svc
+from services.library_service import calculate_late_fee_for_book
 
 
 # ---------- helpers ----------
 def _freeze_now(monkeypatch, fixed_dt: datetime):
     """Replace library_service.datetime.now() with fixed_dt."""
-    import library_service as svc
     class _FixedDT(datetime):
         @classmethod
         def now(cls, *a, **k): return fixed_dt
@@ -29,7 +29,6 @@ def _freeze_now(monkeypatch, fixed_dt: datetime):
 
 def _patch_lookup_borrow(monkeypatch, record):
     """Patch the borrow lookup helper (name to be added later)."""
-    import library_service as svc
     monkeypatch.setattr(svc, "get_active_borrow_record", lambda pid, bid: record, raising=False)
 
 def _rec(patron="123456", book=10, borrow=None, due=None):
@@ -110,7 +109,6 @@ def test_late_fee_api_not_implemented_returns_501(monkeypatch, client):
 def test_ten_days_overdue_tiered():
     """10 days overdue → fee = 7*0.50 + 3*1.00 = $6.50; JSON has fee_amount & days_overdue."""
     from datetime import datetime, timedelta
-    from library_service import calculate_late_fee_for_book
     due = datetime(2025, 1, 10, 12, 0, 0)
     now = due + timedelta(days=10)
     out = calculate_late_fee_for_book("123456", 10, {"due_date": due.isoformat()}, now)
@@ -119,7 +117,6 @@ def test_ten_days_overdue_tiered():
 def test_fee_cap_at_15():
     """Very late returns are capped at $15.00 (e.g., 40 days overdue)."""
     from datetime import datetime, timedelta
-    from library_service import calculate_late_fee_for_book
     due = datetime(2025, 1, 10, 12, 0, 0)
     now = due + timedelta(days=40)
     out = calculate_late_fee_for_book("123456", 10, {"due_date": due.isoformat()}, now)

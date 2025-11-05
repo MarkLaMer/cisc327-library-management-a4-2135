@@ -14,8 +14,8 @@ R7 verifies the report includes:
 
 import pytest
 from datetime import datetime, timedelta
-
-from library_service import get_patron_status_report
+import services.library_service as svc 
+from services.library_service import get_patron_status_report
 
 
 def _key(d, *candidates):
@@ -28,7 +28,6 @@ def _key(d, *candidates):
 
 def _freeze_now(monkeypatch, fixed_dt: datetime):
     """Freeze library_service.datetime.now() for reproducible fee calculations."""
-    import library_service as svc
     class _FixedDT(datetime):
         @classmethod
         def now(cls, *a, **k):
@@ -68,7 +67,6 @@ def test_current_placeholder_is_dict():
 
 
 def test_status_includes_current_loans_and_count(monkeypatch):
-    import library_service as svc
     active = [
         _active(10, "Clean Code", days_until_due=3),
         _active(11, "Fluent Python", days_until_due=1),
@@ -97,7 +95,6 @@ def test_status_includes_current_loans_and_count(monkeypatch):
 
 
 def test_status_totals_late_fees(monkeypatch):
-    import library_service as svc
     active = [
         _active(10, "One", days_until_due=-2),  # overdue 2d
         _active(11, "Two", days_until_due=-10), # overdue 10d → 6.50 fee
@@ -152,7 +149,6 @@ def test_status_shape_keys(monkeypatch):
         "history": [ ... ]
       }
     """
-    import library_service as svc
     monkeypatch.setattr(svc, "get_active_borrows_by_patron", lambda pid: [], raising=False)
     monkeypatch.setattr(svc, "get_borrow_history_by_patron", lambda pid: [], raising=False)
     monkeypatch.setattr(

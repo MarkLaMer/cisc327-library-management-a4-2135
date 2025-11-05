@@ -12,19 +12,19 @@
 
 {% if report %}
   <div style="margin-top:20px;">
-    <p><strong>ID:</strong> {{ report.patron_id }}</p>
-    <p><strong>Currently Borrowed:</strong> {{ report.current_borrow_count }}</p>
+    <p><strong>ID:</strong> {{ patron_id }}</p>
+    <p><strong>Currently Borrowed:</strong> {{ report.current_count }}</p>
     <p><strong>Total Late Fees Owed:</strong> ${{ '%.2f'|format(report.total_late_fees) }}</p>
   </div>
 
   <h3>Active Loans</h3>
-  {% if report.currently_borrowed %}
+  {% if report.current_loans %}
   <table>
     <thead>
       <tr><th>Title</th><th>Author</th><th>Borrowed</th><th>Due</th><th>Status</th><th>Fee</th></tr>
     </thead>
     <tbody>
-      {% for item in report.currently_borrowed %}
+      {% for item in report.current_loans %}
       <tr>
         <td>{{ item.title }}</td>
         <td>{{ item.author }}</td>
@@ -57,7 +57,13 @@
         <td>{{ r.author }}</td>
         <td>{{ r.borrow_date[:10] }}</td>
         <td>{{ r.due_date[:10] }}</td>
-        <td>{% if r.returned %}{{ r.return_date[:10] }}{% else %}<span class="status-unavailable">Active</span>{% endif %}</td>
+        <td>
+          {% if r.return_date %}
+            {{ r.return_date[:10] }}
+          {% else %}
+            <span class="status-unavailable">Active</span>
+          {% endif %}
+        </td>
         <td>${{ '%.2f'|format(r.late_fee_at_end) }}</td>
       </tr>
       {% endfor %}

@@ -20,7 +20,7 @@ Notes:
 
 
 import pytest
-import library_service as svc
+import services.library_service as svc
 
 
 # ----------------- helpers -----------------

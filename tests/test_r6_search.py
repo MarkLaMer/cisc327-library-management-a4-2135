@@ -16,7 +16,8 @@ Note: Service not implemented yet; expectation tests are xfail.
 '''
 
 import pytest
-from library_service import search_books_in_catalog
+from services.library_service import search_books_in_catalog
+import services.library_service as svc
 
 
 BOOKS = [
@@ -96,7 +97,6 @@ def _patch_conn(monkeypatch):
     """
     Monkeypatch library_service.get_db_connection with a tiny function-based version.
     """
-    import library_service as svc
     def make_cursor(rows):
         def cur(): pass
         cur.fetchall = lambda: rows
@@ -138,7 +138,6 @@ def test_isbn_exact_vs_partial_min(monkeypatch):
     Test that partial ISBN must not match
     """
     _patch_conn(monkeypatch)
-    import library_service as svc
     exact   = svc.search_books_in_catalog("9876543216543", "isbn")
     partial = svc.search_books_in_catalog("9876543", "isbn")
     assert len(exact) == 1 and exact[0]["title"] == "Les Misérables"

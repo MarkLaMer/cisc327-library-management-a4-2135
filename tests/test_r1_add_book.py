@@ -19,7 +19,7 @@ NOTE: make sure `tests/conftest.py` adds project root to sys.path so `from libra
 '''
 
 import pytest
-from library_service import add_book_to_catalog
+from services.library_service import add_book_to_catalog
 
 # Happy Path Tests for adding a book to the library catalog
 def test_add_book_valid_input(monkeypatch):
@@ -29,9 +29,9 @@ def test_add_book_valid_input(monkeypatch):
     - Expect success and a success message.
     """
     # no duplicate
-    monkeypatch.setattr("library_service.get_book_by_isbn", lambda _: None)
+    monkeypatch.setattr("services.library_service.get_book_by_isbn", lambda _: None)
     # pretend insert succeeds (we’re not asserting insert args to keep it simple)
-    monkeypatch.setattr("library_service.insert_book", lambda *a, **k: True)
+    monkeypatch.setattr("services.library_service.insert_book", lambda *a, **k: True)
 
     success, message = add_book_to_catalog("Test Book", "Test Author", "1234567890123", 5)
     assert success is True
@@ -62,7 +62,7 @@ def test_add_book_author_too_long():
 
 def test_add_book_duplicate_isbn(monkeypatch):
     """This path checks the DB, so we stub just that one helper."""
-    monkeypatch.setattr("library_service.get_book_by_isbn", lambda isbn: {"isbn": isbn})
+    monkeypatch.setattr("services.library_service.get_book_by_isbn", lambda isbn: {"isbn": isbn})
     # insert should not be called, but we don’t need to stub it to assert the message
     success, message = add_book_to_catalog("Book", "Author", "1234567890123", 5)
     assert success is False
