@@ -10,8 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        # Only use Python 3.11 to avoid greenlet stupidity :(
-        python-version: ["3.11"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     name: Test
     runs-on: ${{ matrix.os }}
@@ -37,7 +36,7 @@ jobs:
       
       - name: Install Playwright Browsers
         run: |
-          python -m playwright install 
+          python -m playwright install --with-deps 
 
       - name: Start server
         env:
