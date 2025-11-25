@@ -3,3 +3,5 @@ pytest==7.4.2
 pytest-cov==7.0.0
 requests
 pytest-mock>=3.10.0
+playwright==1.37.0
+docker==6.1.3
