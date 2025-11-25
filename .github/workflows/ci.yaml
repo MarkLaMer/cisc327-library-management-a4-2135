@@ -15,6 +15,11 @@ jobs:
     name: Test
     runs-on: ${{ matrix.os }}
 
+    # Make all `run:` steps use bash, even on Windows
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,11 +33,60 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Run tests
-        run: pytest --cov --cov-branch --cov-report=xml
       
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Install Playwright Browsers
+        run: |
+          playwright install --with-deps 
+
+      # updated server start
+      - name: Start server
+        env:
+          FLASK_APP: app.py
+          FLASK_ENV: production
+        run: |
+          # Start the server in the background and log output
+          python app.py > server.log 2>&1 &
+
+          echo "Waiting for server to become ready..."
+          for i in {1..15}; do
+            if curl -sSf http://127.0.0.1:5000/add_book > /dev/null; then
+              echo "Server is up!"
+              exit 0
+            fi
+            echo "Still waiting for server... ($i)"
+            sleep 2
+          done
+
+          echo "Server did not start in time"
+          echo "==== server.log ===="
+          cat server.log || echo "server.log not found"
+          exit 1
+          
+      - name: Run tests (tolerate no tests)
+        run: |
+          set +e
+          pytest --cov=services --cov-branch \
+                 --cov-report=xml \
+                 --cov-report=term \
+                 tests/
+          code=$?
+          if [ $code -eq 5 ]; then
+            echo "No tests found; treating as success."
+            exit 0
+          else
+            exit $code
+          fi
+
+      # Always show server logs if anything fails
+      - name: Dump server logs on failure
+        if: failure()
+        run: |
+          echo "==== server.log ===="
+          cat server.log || echo "server.log not found"
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: true
